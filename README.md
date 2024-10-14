@@ -87,4 +87,4 @@ git add scriptNginx.sh
 git commit -m "criado o scriptNginx.sh"
 git push
 ```
-
+Agora tudo está pronto para escrever o script e verificar se o serviço do Nginx está online ou offline.
