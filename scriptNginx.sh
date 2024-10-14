@@ -4,7 +4,9 @@
 #Esta parte tem que ser hardcoded, sem a variável $USER, pois o cron dá erro
 
 path=/home/gfaraco/log;
-file=$path/logfile.log;
+fileOnline=$path/logfileOnline.log;
+fileOffline=$path/logfileOffline.log;
+outputString="$(date '+%d-%m-%Y %H:%M:%S') -"; 
 
 #Cria o diretório de onde vai ficar o log, se ele não existir
 
@@ -14,20 +16,24 @@ fi
 
 #Cria o arquivo de log no diretório específico, se o arquivo não existir
 
-if [ ! -f $file ]; then
-	touch $file;
+if [ ! -f $fileOnline  ]; then
+	touch $fileOnline;
 fi
 
-#Testar se o serviço nginx está online ou offline e tratar a string do outputi
+if [ ! -f $fileOffline  ]; then
+	touch $fileOffline;
+fi
+#Testar se o serviço nginx está online ou offline e tratar a string do output
+#Concatenando com a data;
+#Se o nginx estiver offline, ele manda o log para o arquivo específico
+#Se estiver online, ele manda para o outro arquivo
 
 if service nginx status | grep -q '* nginx is not running'; then
 	service="Serviço Nginx está offline";
-else service="Serviço Nginx está online";
+	echo "$outputString $service" >> $fileOffline;
+else 	service="Serviço Nginx está online";
+	echo "$outputString $service" >> $fileOnline;
 fi
 
-#Depois de validado o output do serviço, concatenar o resultado com a data atual e mandar
-#para o arquivo de log
 
-outputString="$(date '+%d-%m-%Y %H:%M:%S') -"; 
-echo "$outputString $service" >> $file;
 
