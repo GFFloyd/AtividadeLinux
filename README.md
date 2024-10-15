@@ -2,6 +2,12 @@
 *Estágio DevSecOps | Compass.UOL*
 
 ---
+### Introdução
+
+A atividade pede que criemos um script em bash que valide se o serviço Nginx está online ou offline a cada 5 minutos, e o script tem que mandar um log para dois arquivos separados, um se o Nginx estiver online e outro se o mesmo estiver offline.
+Documentei abaixo todos os passos necessários para criar o script em uma máquina Windows usando o WSL (Windows Subsystem for Linux).
+
+---
 
 ### 1º Passo - Instalação do WSL
 
@@ -88,3 +94,55 @@ git commit -m "criado o scriptNginx.sh"
 git push
 ```
 Agora tudo está pronto para escrever o script e verificar se o serviço do Nginx está online ou offline.
+
+---
+
+### 3º Passo - Instalar o Nginx e programar o script
+
+Para instalar o Nginx precisamos dar o seguinte comando:
+
+```bash
+sudo apt install nginx
+```
+
+Se tudo der certo, o serviço já estará ativo e podemos verificar se o Nginx está funcionando indo no browser e digitando a URL `localhost`, que nos dará uma página de boas vindas ao Nginx.
+
+A etapa de programar o script pode ser verificada no arquivo `.sh` deste repositório, onde documentei cada passo do script.
+
+---
+
+### 4º Passo - Programar o itinerário
+
+Agora que temos o script funcionando do jeito esperado, teremos que programar o itinerário para fazê-lo rodar a cada 5 minutos. Para fazermos isso precisamos de uma função dos sistemas UNIX chamada `cron`, para programar um itinerário do cron, teremos que criar uma `crontab` usando o seguinte comando:
+
+```bash
+crontab -e
+```
+
+Este comando perguntará qual o editor de texto que vamos trabalhar, depois de selecionado o editor, nos depararemos com um arquivo de texto que diz como programar um itinerário do cron, no final deste arquivo iremos colocar o seguinte texto:
+
+```
+*/5 * * * * nome/do/diretório/script.sh 2>&1 | logger -t mycmd
+```
+
+Explicando o que o código acima faz:
+* A parte dos asteriscos representam caracteres coringa, o primeiro asterisco (*/5) significa que o `cron` será ativado a cada minuto divisível por 5
+* Os outros 4 asteriscos representam horas, dia do mês, mês e dia da semana respectivamente, por exemplo, se quiséssemos usar o `cron` para fazer um backup toda semana, às 5h da manhã, usaríamos o seguinte comando: `0 5 * * 1 tar -zcf /var/backups/home.tgz /home/`
+* A parte do `2>&1` significa que iremos redirecionar a saída do `stderr` para o `stdout`
+* Depois com a saída do `stdout` iremos usar o comando logger para enviá-lo aos logs do sistema, usando o `-t` para criar uma tag única neste log, que será bastante útil para procurar por este nome usando o `grep`
+
+Agora que temos um `crontab` instalado, teremos que iniciar o serviço do `cron` para ele começar a chamar o nosso script a cada 5 minutos, utilizaremos o seguinte comando:
+
+```
+sudo service cron start
+```
+
+Agora temos um itinerário rodando no sistema, que sempre irá verificar se o serviço do Nginx está online ou offline e criar o log disso a cada 5 minutos, como a atividade pede.
+
+---
+
+## Conclusões finais
+
+Chegamos ao final da atividade proposta. Achei a atividade bastante útil em reforçar alguns aprendizados que obtive ao longo da trilha de Linux, foi a primeira vez que fiz um script em shell e gostei bastante do resultado, a sintaxe difere um pouco das linguagens de programação que eu já estudei e trabalhei, mas dá pra se familiarizar com a mesma rapidamente, já que a estrutura imperativa da linguagem é similar a muitas outras.
+Imagino que usaremos bastante scripts do bash ao longo do estágio, para automatizarmos alguns serviços e funções do sistema operacional e de alguns programas. Também acho que usaremos muito o `cron` para programar itinerários específicos.
+Também gostei de como eu me sinto mais confortável com o terminal e comandos do bash, antes eu tinha uma pouca familiaridade com os mesmos, mas agora eu acho tudo muito natural.
